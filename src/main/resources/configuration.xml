@@ -1,0 +1,25 @@
+<config>
+    <properties>
+        <property>
+            <name>Субъект</name>
+            <patternInScript>%Субъект%</patternInScript>
+            <patternInCert>CN=</patternInCert>
+            <!--Предпологается раздел, с которого в сертификате ищется соответствующее значение, по умолчанию "Субъект"-->
+            <sectionInCert>Субъект</sectionInCert>
+        </property>
+        <property>
+            <name>ОГРН</name>
+            <patternInScript>%ОГРН%</patternInScript>
+            <patternInCert>OID\.1\.2\.643\.100\.1=</patternInCert>
+        </property>
+    </properties>
+    <service>
+        <send_automatically>true</send_automatically><!--todo-->
+        <url>http://oraas.rt.ru:7777/gateway/services/SID0003318</url>
+        <proxy>
+            <use_proxy>false</use_proxy>
+            <host>localhost</host>
+            <port>8888</port>
+        </proxy>
+    </service>
+</config>
