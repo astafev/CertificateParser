@@ -33,10 +33,12 @@ public class ButtonsPanel extends JPanel implements ActionListener{
     public static Logger log = LoggerFactory.getLogger("certificateparser.gui");
 
     public ButtonsPanel() {
-        verifyCertButton.addActionListener(new SendCertActionListener());
+        verifyCertButton.addActionListener(SendCertActionListener.getInstance());
         testButton.addActionListener(this);
+        reloadConfigButton.addActionListener(Configuration.getInstance());
         this.add(verifyCertButton);
         this.add(testButton);
+        this.add(reloadConfigButton);
 //        this.setTransferHandler();
         //todo добавить transferhandler
     }
@@ -45,29 +47,14 @@ public class ButtonsPanel extends JPanel implements ActionListener{
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getSource().equals(verifyCertButton)) {
-            try {
-                 String response = verifier.validateCertificate(CertificatePanel.certFile);
-                log.debug("Response: " + response);
-                if(response.equals("0"))
-                    JOptionPane.showMessageDialog(this.getParent(), "Сертификат прошел проверку", "Все ОК!", JOptionPane.YES_NO_CANCEL_OPTION);
-                else
-                    JOptionPane.showMessageDialog(this.getParent(), response, "Все плохо!", JOptionPane.ERROR_MESSAGE);
-            } catch (IOException e1) {
-                e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }  catch (SAXException e1) {
-                e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (NullPointerException e1) {
-                JOptionPane.showMessageDialog(this.getParent(), "Fuck you!\n" + e1.getMessage(), "NullPointerException", JOptionPane.ERROR_MESSAGE);
-            }
-        }
         if(e.getSource().equals(this.testButton)) {
+            this.getParent().getParent().getParent().getParent().getParent().getClass().getName();
+
             System.out.println(this.getParent().getClass().getName());
             System.out.println(this.getParent().getParent().getClass().getName());
             System.out.println(this.getParent().getParent().getParent().getClass().getName());
             System.out.println(this.getParent().getParent().getParent().getParent().getClass().getName());
             System.out.println(this.getParent().getParent().getParent().getParent().getParent().getClass().getName());
-            System.out.println(this.getParent().getParent().getParent().getParent().getParent().getParent().getClass().getName());
         }
     }
 

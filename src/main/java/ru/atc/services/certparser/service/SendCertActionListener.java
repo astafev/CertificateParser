@@ -18,16 +18,24 @@ import java.io.IOException;
  * Time: 21:14
  */
 public class SendCertActionListener implements ActionListener {
-    ServiceVerify verifier;
+//    ServiceVerify verifier;
     public static Logger log = LoggerFactory.getLogger("certificateparser.service");
-    public SendCertActionListener() {
-        verifier = new ServiceVerify(Configuration.getInstance());
+    private SendCertActionListener() {
+    }
+
+    public static SendCertActionListener sendCertActionListener;
+
+    public static SendCertActionListener getInstance() {
+        if(sendCertActionListener == null) {
+            sendCertActionListener = new SendCertActionListener();
+        }
+        return sendCertActionListener;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
             try {
-                String response = verifier.validateCertificate(CertificatePanel.certFile);
+                String response = new ServiceVerify().validateCertificate(CertificatePanel.certFile);
                 log.debug("Response: " + response);
                 if(response.equals("0"))
                     JOptionPane.showMessageDialog(((Component)e.getSource()).getParent(), "Сертификат прошел проверку", "Все ОК!", JOptionPane.YES_NO_CANCEL_OPTION);

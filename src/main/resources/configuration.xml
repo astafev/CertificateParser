@@ -14,7 +14,7 @@
         </property>
     </properties>
     <service>
-        <send_automatically>true</send_automatically><!--todo-->
+        <send_automatically>false</send_automatically><!--todo-->
         <url>http://oraas.rt.ru:7777/gateway/services/SID0003318</url>
         <proxy>
             <use_proxy>false</use_proxy>

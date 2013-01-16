@@ -50,8 +50,13 @@ public class ServiceVerify {
 
     XMLReader xr = null;
 
-    public ServiceVerify(String URL) {
-        this.URL = URL;
+    public ServiceVerify() {
+        this.URL = Configuration.getInstance().URL;
+        if(Configuration.getInstance().TO_USE_PROXY) {
+            this.httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(Configuration.getInstance().proxyHost, Configuration.getInstance().proxyPort)); //прокси
+
+        }
+//        System.out.println(httpClient.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY));
         try {
             xr = XMLReaderFactory.createXMLReader();
         } catch (SAXException e) {
@@ -64,14 +69,6 @@ public class ServiceVerify {
         xr.setErrorHandler(handler);
     }
 
-    public ServiceVerify(Configuration config) {
-        this(config.URL);
-        if(config.TO_USE_PROXY) {
-            this.httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(config.proxyHost, config.proxyPort)); //прокси
-        }
-
-
-    }
 
     /**
      * Посылает сертификат на сервис проверки
@@ -82,6 +79,7 @@ public class ServiceVerify {
         request.addHeader("SOAPAction", "http://esv.server.rt.ru/VerifyCertificate");
         HttpEntity entity = new StringEntity(firstPart + getBase64Encoding(certFile)+ lastPart, ContentType.create("text/xml", "UTF-8"));
         request.setEntity(entity);
+        log.debug("Sending...");
         return httpClient.execute(request);
     }
 
@@ -91,6 +89,7 @@ public class ServiceVerify {
      * */
     public String validateCertificate(File certFie) throws IOException, SAXException {
         HttpResponse response = sendCertificate(certFie);
+        log.debug("Got response.");
         InputStream is = response.getEntity().getContent();
         xr.parse(new InputSource(is));
         return this.response;

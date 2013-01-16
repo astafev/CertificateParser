@@ -155,12 +155,13 @@ public class CertificatePanel extends JPanel{
                 if(files.size()>1) {
                     log.error("You added more than one file");
                 }
+                CertificatePanel.this.putClientProperty("File", files.get(0));
 
                 Map<Property, String> certificateMap = factory.parseCertificate(files.get(0));
                 for(Property prop:certificateMap.keySet())
                 {
                     propFields.get(prop).setText(certificateMap.get(prop));
-//                    propFields.get(prop.getName()).moveCaretPosition(0);
+                    propFields.get(prop).moveCaretPosition(0);
                 }
                 if(config.TO_SEND_AUTHOMATICALLY) {
                     //todo

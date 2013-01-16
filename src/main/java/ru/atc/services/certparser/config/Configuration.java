@@ -9,6 +9,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -20,7 +21,7 @@ import java.util.TreeSet;
 
 /**
  */
-public class Configuration {
+public class Configuration implements ActionListener{
     public static Logger log = LoggerFactory.getLogger("certificateparser.config");
 
     public static String configFile = "configuration.xml";
@@ -65,6 +66,7 @@ public class Configuration {
                 //по хорошему надо сделать error handler, но в общем-то нафиг он не нужен сейчас
                 configuration.xmlReader.setErrorHandler(configuration.configParserHandler);
 
+
             } catch (SAXException e) {
                 log.error("Unable to create XMLFactory ", e);
                 e.printStackTrace();
@@ -88,13 +90,25 @@ public class Configuration {
         this.propSet = new LinkedHashSet<Property>();
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(configFile);
         xmlReader.parse(new InputSource(in));
+
         propSet.add(new Property("Серийный номер", "Серийный номер:", "%serial%"));
         propSet.add(new Property("Сертификат", null, null));
+        in.close();
     }
     public void init() throws SAXException, IOException {
         this.init(Configuration.configFile);
     }
 
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+            this.init();
+        } catch (SAXException e1) {
+            JOptionPane.showMessageDialog(null, e1.getLocalizedMessage(), "Неверный конфиг!", JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e1) {
+            JOptionPane.showMessageDialog(null, e1.getLocalizedMessage(), "Ошибка при чтении конфигурационного файла!", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
 
     private class ConfigParserHandler extends DefaultHandler {
@@ -241,21 +255,6 @@ public class Configuration {
         }
 
     }
-
-    public static class ReloadActionListener implements ActionListener {
-        public static Logger log = Configuration.log;
-        @Override
-        public void actionPerformed(ActionEvent event) {
-            try {
-                Configuration.getInstance().init();
-            } catch (SAXException e1) {
-                log.error("Че-то не так", e1);
-            } catch (IOException e1) {
-                log.error("Че-то сильно не так", e1);
-            }
-        }
-    }
-
 }
 
 

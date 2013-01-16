@@ -4,6 +4,7 @@ import ru.atc.services.certparser.config.Configuration;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 /**
  * Date: 05.01.13
@@ -13,9 +14,19 @@ public class MainWindow extends JFrame {
 
     public ButtonsPanel buttonsPanel;
     public CertificatePanel certificatePanel;
+    private static MainWindow windowInstance;
 
-    public MainWindow(String s) {
+    public static File certFile;
+
+    private MainWindow(String s) {
         super(s);
+    }
+
+    public static MainWindow getInstance() {
+        if(windowInstance == null) {
+            windowInstance = new MainWindow("Парсер сертификатов");
+        }
+        return windowInstance;
     }
 
     /**

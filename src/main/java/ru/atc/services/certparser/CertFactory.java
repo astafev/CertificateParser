@@ -45,6 +45,9 @@ public class CertFactory {
     public synchronized Map<Property, String> parseCertificate(File certificateFile) throws IOException {
         Map<Property, String> certMap = new LinkedHashMap<Property, String>(3 + configuration.config.length);
         this.certificate = getCertificate(certificateFile);
+        if(certificate.contains("команда НЕ ВЫПОЛНЕНА")){
+            throw new IOException(certificate);       //to think
+        }
         log.debug("Read " + certificate.length() + " symbols to certificate.");
 
         BigInteger serial;
