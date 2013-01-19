@@ -35,17 +35,19 @@ public class MainWindow extends JFrame {
      * event-dispatching thread.
      */
     private static void createAndShowGUI() {
-        MainWindow frame = new MainWindow("Итерация 1");
+        MainWindow frame = MainWindow.getInstance();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 
         JPanel mainPanel = new JPanel(new FlowLayout());
 
-        CertificatePanel certPanel = new CertificatePanel();
-        mainPanel.add(certPanel);
 
-        ButtonsPanel buttonsPanel = new ButtonsPanel();
-        mainPanel.add(buttonsPanel);
+        frame.certificatePanel = new CertificatePanel();
+        mainPanel.add(frame.certificatePanel);
+
+        frame.buttonsPanel = new ButtonsPanel();
+        mainPanel.add(frame.buttonsPanel);
+        frame.buttonsPanel.setTransferHandler(frame.certificatePanel.getTransferHandler());
 
         frame.add(mainPanel);
         frame.pack();

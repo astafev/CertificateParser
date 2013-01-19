@@ -43,22 +43,21 @@ public class CertFactory {
      * Есть 3 св-ва обязательных: файл с сертификатом, серийный номер, то что выдала утилитка certutil (при нормальной работе сам сертификат)
      * */
     public synchronized Map<Property, String> parseCertificate(File certificateFile) throws IOException {
-        Map<Property, String> certMap = new LinkedHashMap<Property, String>(3 + configuration.config.length);
+        final Map<Property, String> certMap = new LinkedHashMap<Property, String>(configuration.propSet.size()+2);
         this.certificate = getCertificate(certificateFile);
         if(certificate.contains("команда НЕ ВЫПОЛНЕНА")){
-            throw new IOException(certificate);       //to think
+            throw new IOException(certificate);       //to_think
         }
         log.debug("Read " + certificate.length() + " symbols to certificate.");
 
         BigInteger serial;
-        System.out.println(configuration.propSet);
         for(Property prop:configuration.propSet) {
             //prop[0] - паттерн
             //prop[1] - имя
             //prop[2] - где искать
             if(prop.getName().equals("Серийный номер")){
                 try {
-                    serial = new BigInteger(parse("Серийный номер: ", 0, 500)[0], 16);
+                    serial = new BigInteger(parse(prop.getPatternInCert(), 0, 500)[0], 16);
                 } catch (NumberFormatException e) {
                     serial = new BigInteger("0");
                     log.error("Didn't found serial number! Probably");
@@ -71,6 +70,13 @@ public class CertFactory {
                 certMap.put(prop, certificate);
                 continue;
             }
+
+            //всякие св-ва типа
+            if(prop.getPatternInCert()==null || prop.getPatternInCert().equals("")){
+                certMap.put(prop, "Enter value here");
+                continue;
+            }
+
             int index;
             if(prop.getSectionInCert() == null){
                 index = certificate.indexOf("Субъект");

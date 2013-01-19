@@ -1,8 +1,11 @@
 <config>
     <properties>
         <property>
+            <!--просто имя-->
             <name>Субъект</name>
+            <!--место в шаблонном скрипте, куда будет вставлено значение-->
             <patternInScript>%Субъект%</patternInScript>
+            <!--из сертификата будет браться значение стоящее после этого до перевода строки-->
             <patternInCert>CN=</patternInCert>
             <!--Предпологается раздел, с которого в сертификате ищется соответствующее значение, по умолчанию "Субъект"-->
             <sectionInCert>Субъект</sectionInCert>
@@ -12,9 +15,24 @@
             <patternInScript>%ОГРН%</patternInScript>
             <patternInCert>OID\.1\.2\.643\.100\.1=</patternInCert>
         </property>
+        <property>
+            <name>Название ИС</name>
+            <patternInScript>%Название ИС%</patternInScript>
+            <!--нету там-->
+            <patternInCert></patternInCert>
+        </property>
+        <property>
+            <name>Регион</name>
+            <patternInScript>%Регион%</patternInScript>
+            <!--из сертификата будет браться значение стоящее после этого до перевода строки-->
+            <patternInCert>S=</patternInCert>
+            <sectionInCert>Субъект</sectionInCert>
+        </property>
+
     </properties>
     <service>
-        <send_automatically>false</send_automatically><!--todo-->
+        <send_automatically>true</send_automatically>
+        <!--альтернатива, доступная без поделючения к продуктивной сети: http://192.168.100.96:7777/gateway/services/SID0003064-->
         <url>http://oraas.rt.ru:7777/gateway/services/SID0003318</url>
         <proxy>
             <use_proxy>false</use_proxy>
@@ -22,4 +40,7 @@
             <port>8888</port>
         </proxy>
     </service>
+    <template_script>template_script.sql</template_script>
+    <!--todo-->
+    <target_script_file>generated_script1.sql</target_script_file>
 </config>

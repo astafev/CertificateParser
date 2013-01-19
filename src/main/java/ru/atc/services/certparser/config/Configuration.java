@@ -8,18 +8,21 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
+import ru.atc.services.certparser.db.ScriptGeneratorListener;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
 /**
+ * Конфигурация считыается из xml файла с известной структурой. Если файла нет либо в нем не присутствует какое-то значение, берется значения по умолчанию,
+ * хотя отсутствие конфигурационного файла это все же ошибка.
  */
 public class Configuration implements ActionListener{
     public static Logger log = LoggerFactory.getLogger("certificateparser.config");
@@ -28,28 +31,14 @@ public class Configuration implements ActionListener{
 
     public String URL = "http://oraas.rt.ru:7777/gateway/services/SID0003318";
 
-    public String[][] config = new String[][]{
-            {"OID\\.1\\.2\\.643\\.100\\.1=",  "ОГРН",    "Субъект"},
-            {"CN=",                           "Субъект", "Субъект"}
-    };
-
     /***/
-    public Set<Property> propSet = new TreeSet<Property>();
-
-    /* сейчас будет сложно реализовать такой метод, да он и нафиг не нужен
-    public Property getProperty(String name) {
-
-        return configMap.get(name);
-    }*/
-
-
-    public final int propertiesNumber = config.length;
+    public Set<Property> propSet = new TreeSet<>();
 
     public boolean TO_USE_PROXY = false;
     public String proxyHost = "localhost";
     public int proxyPort = 8888;
 
-    public boolean TO_SEND_AUTHOMATICALLY = true;
+    public boolean TO_SEND_AUTHOMATICALLY = false;
 
     XMLReader xmlReader = null;
 
@@ -57,6 +46,12 @@ public class Configuration implements ActionListener{
     private static Configuration configuration;
     private ConfigParserHandler configParserHandler = new ConfigParserHandler();
 
+    public String template_script = "template_script.sql";
+    public String target_script_file = "generated_script.sql";
+
+    /**
+     *
+     * */
     public synchronized static Configuration getInstance() {
         if(configuration == null) {
             configuration = new Configuration();
@@ -75,34 +70,47 @@ public class Configuration implements ActionListener{
                 configuration.init(configFile);
             } catch (SAXException e) {
                 log.error("кривой конфиг или еще какая фигня", e);
+            } catch (MalformedURLException e) {
+                log.error("Не нашел конфигурационный файл!", e);
+                JOptionPane.showMessageDialog(null, e.getMessage() + "\nПодробнее в логах", "Не нашел конфигурационный файл!" + configFile, JOptionPane.ERROR_MESSAGE);
             } catch (IOException e) {
                 log.error("пиздец", e);
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                JOptionPane.showMessageDialog(null, e.getMessage()+ "\nПодробнее в логах", "Ошибка при чтении конфигурационного файла!", JOptionPane.ERROR_MESSAGE);
             }
             log.debug("Config created");
         }
         return configuration;
     }
 
+    /**считывает конфиг из файла
+     * @param configFile файл с xml-конфигом*/
     public void init(String configFile) throws SAXException, IOException {
         //считывает конфигурация из xml-файла
         //to_test
-        this.propSet = new LinkedHashSet<Property>();
+        this.propSet = new LinkedHashSet<>();
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(configFile);
-        xmlReader.parse(new InputSource(in));
 
-        propSet.add(new Property("Серийный номер", "Серийный номер:", "%serial%"));
-        propSet.add(new Property("Сертификат", null, null));
+        try{
+            xmlReader.parse(new InputSource(in));
+        } finally {
+            propSet.add(new Property("Серийный номер", "%serial%", "Серийный номер: ", "Сертификат X509"));
+            propSet.add(new Property("Сертификат", null, null, null));
+        }
         in.close();
     }
+
+    /**считывает конфиг из файла по умолчанию (поле configFile)*/
     public void init() throws SAXException, IOException {
         this.init(Configuration.configFile);
     }
 
+    /**Перегружает конфиг из файла по умолчанию
+     * <br /> Должен срабатывать по нажатии кнопки "Reload config" пользователем*/
     @Override
     public void actionPerformed(ActionEvent e) {
         try {
             this.init();
+            ScriptGeneratorListener.getInstance().renewConfig();
         } catch (SAXException e1) {
             JOptionPane.showMessageDialog(null, e1.getLocalizedMessage(), "Неверный конфиг!", JOptionPane.ERROR_MESSAGE);
         } catch (IOException e1) {
@@ -125,6 +133,9 @@ public class Configuration implements ActionListener{
         private boolean host = false;
         private boolean port = false;
         private boolean sectionInCert = false;
+        private boolean template_script = false;
+        private boolean target_script_file = false;
+
 
         private Property prop;
 
@@ -138,32 +149,56 @@ public class Configuration implements ActionListener{
                                   String qName, Attributes attributes)
                 throws SAXException
         {
-            if(localName.equals("service")) {
-                this.service = true;
-            } else if(localName.equals("properties")) {
-                this.properties = true;
-            } else if(localName.equals("property")) {
-                this.property = true;
-            } else if(localName.equals("name")) {
-                this.name = true;
-            } else if(localName.equals("patternInScript")) {
-                this.patternInScript = true;
-            } else if(localName.equals("patternInCert")) {
-                this.patternInCert = true;
-            } else if(localName.equals("send_automatically")) {
-                this.send_automatically = true;
-            } else if(localName.equals("url")) {
-                this.url = true;
-            }  else if(localName.equals("proxy")) {
-                this.proxy = true;
-            } else if(localName.equals("use_proxy")) {
-                this.use_proxy = true;
-            } else if(localName.equals("host")) {
-                this.host = true;
-            } else if(localName.equals("port")) {
-                this.port = true;
-            } else if(localName.equals("sectionInCert")) {
-                this.sectionInCert = true;
+            if(uri.equals("")){
+                switch (localName) {
+                    case "service":
+                        this.service = true;
+                        break;
+                    case "properties":
+                        this.properties = true;
+                        break;
+                    case "property":
+                        this.property = true;
+                        break;
+                    case "name":
+                        this.name = true;
+                        break;
+                    case "patternInScript":
+                        this.patternInScript = true;
+                        break;
+                    case "patternInCert":
+                        this.patternInCert = true;
+                        break;
+                    case "send_automatically":
+                        this.send_automatically = true;
+                        break;
+                    case "url":
+                        this.url = true;
+                        break;
+                    case "proxy":
+                        this.proxy = true;
+                        break;
+                    case "use_proxy":
+                        this.use_proxy = true;
+                        break;
+                    case "host":
+                        this.host = true;
+                        break;
+                    case "port":
+                        this.port = true;
+                        break;
+                    case "sectionInCert":
+                        this.sectionInCert = true;
+                        break;
+                    case "template_script":
+                        this.template_script = true;
+                        break;
+                    case "target_script_file":
+                        this.target_script_file = true;
+                        break;
+
+                }
+
             }
         }
 
@@ -171,33 +206,54 @@ public class Configuration implements ActionListener{
         public void endElement (String uri, String localName, String qName)
                 throws SAXException
         {
-            if(localName.equals("service")) {
-                this.service = false;
-            } else if(localName.equals("properties")) {
-                this.properties = false;
-            } else if(localName.equals("property")) {
-                Configuration.this.propSet.add(prop);
-                this.property = false;
-            } else if(localName.equals("name")) {
-                this.name = false;
-            } else if(localName.equals("patternInScript")) {
-                this.patternInScript = false;
-            } else if(localName.equals("patternInCert")) {
-                this.patternInCert = false;
-            } else if(localName.equals("send_automatically")) {
-                this.send_automatically = false;
-            } else if(localName.equals("url")) {
-                this.url = false;
-            }  else if(localName.equals("proxy")) {
-                this.proxy = false;
-            } else if(localName.equals("use_proxy")) {
-                this.use_proxy = false;
-            } else if(localName.equals("host")) {
-                this.host = false;
-            } else if(localName.equals("port")) {
-                this.port = false;
-            } else if(localName.equals("sectionInCert")) {
-                this.sectionInCert = false;
+            switch (localName) {
+                case "service":
+                    this.service = false;
+                    break;
+                case "properties":
+                    this.properties = false;
+                    break;
+                case "property":
+                    Configuration.this.propSet.add(prop);
+                    this.property = false;
+                    break;
+                case "name":
+                    this.name = false;
+                    break;
+                case "patternInScript":
+                    this.patternInScript = false;
+                    break;
+                case "patternInCert":
+                    this.patternInCert = false;
+                    break;
+                case "send_automatically":
+                    this.send_automatically = false;
+                    break;
+                case "url":
+                    this.url = false;
+                    break;
+                case "proxy":
+                    this.proxy = false;
+                    break;
+                case "use_proxy":
+                    this.use_proxy = false;
+                    break;
+                case "host":
+                    this.host = false;
+                    break;
+                case "port":
+                    this.port = false;
+                    break;
+                case "sectionInCert":
+                    this.sectionInCert = false;
+                    break;
+                case "template_script":
+                    this.template_script = false;
+                    break;
+                case "target_script_file":
+                    this.target_script_file = false;
+                    break;
+
             }
         }
 
@@ -246,6 +302,10 @@ public class Configuration implements ActionListener{
                         Configuration.this.proxyPort = Integer.parseInt(String.valueOf(ch, start, length));
                     }
                 }
+            } else if(template_script) {
+                Configuration.this.template_script = String.valueOf(ch, start, length);
+            } else if(target_script_file) {
+                Configuration.this.target_script_file = String.valueOf(ch, start, length);
             }
         }
 

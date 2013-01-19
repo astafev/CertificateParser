@@ -1,11 +1,8 @@
 package ru.atc.services.certparser.config;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Евгений
  * Date: 04.01.13
  * Time: 22:55
- * To change this template use File | Settings | File Templates.
  */
 public class Property implements Comparable {
     String name;
@@ -15,10 +12,11 @@ public class Property implements Comparable {
     //фуфло
     String sectionInCert;
 
-    public Property(String name, String patternInScript, String patternInCert) {
+    public Property(String name, String patternInScript, String patternInCert, String sectionInCert) {
         this.name = name;
         this.patternInCert = patternInCert;
         this.patternInScript = patternInScript;
+        this.sectionInCert = sectionInCert;
     }
     Property(String name) {
         this.name = name;

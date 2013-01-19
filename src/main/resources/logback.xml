@@ -5,7 +5,18 @@
         </encoder>
     </appender>
 
+    <appender name="LOG_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>cert_parser.log</file>
+        <encoder>
+            <pattern>%date %level %logger{10}: %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <root level="debug">
+        <appender-ref ref="LOG_FILE" />
+    </root>
+    <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
+
 </configuration>

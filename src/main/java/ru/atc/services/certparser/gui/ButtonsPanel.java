@@ -2,8 +2,8 @@ package ru.atc.services.certparser.gui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 import ru.atc.services.certparser.config.Configuration;
+import ru.atc.services.certparser.db.ScriptGeneratorListener;
 import ru.atc.services.certparser.service.SendCertActionListener;
 import ru.atc.services.certparser.service.ServiceVerify;
 
@@ -24,63 +24,45 @@ import java.io.IOException;
  * </ul>
  */
 public class ButtonsPanel extends JPanel implements ActionListener{
-    JButton verifyCertButton = new JButton("Послать сертификат");
+    JButton verifyCertButton = new JButton("Послать сертификат"); {
+        verifyCertButton.setToolTipText("Послать сертификат на сервис проверки сертификатов по тому адресу, который указан в конфиге");
+    }
     JButton testButton = new JButton("Test");
     JButton reloadConfigButton = new JButton("Reload config");
+    JButton generateScript = new JButton("Generate scripts");
 
-
-    ServiceVerify verifier;
     public static Logger log = LoggerFactory.getLogger("certificateparser.gui");
 
     public ButtonsPanel() {
+        super(new GridLayout(4, 1, 10, 25));
+        try {
+            generateScript.addActionListener(ScriptGeneratorListener.getInstance());
+        } catch (IOException e) {
+            //todo
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        };
+
+
+        verifyCertButton.setPreferredSize(new Dimension(250, 50));
+//        verifyCertButton.setPreferredSize(new Dimension(150, 50));
+
+
         verifyCertButton.addActionListener(SendCertActionListener.getInstance());
         testButton.addActionListener(this);
         reloadConfigButton.addActionListener(Configuration.getInstance());
-        this.add(verifyCertButton);
         this.add(testButton);
         this.add(reloadConfigButton);
-//        this.setTransferHandler();
-        //todo добавить transferhandler
+        this.add(verifyCertButton);
+        this.add(generateScript);
+
     }
-
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource().equals(this.testButton)) {
-            this.getParent().getParent().getParent().getParent().getParent().getClass().getName();
 
             System.out.println(this.getParent().getClass().getName());
             System.out.println(this.getParent().getParent().getClass().getName());
-            System.out.println(this.getParent().getParent().getParent().getClass().getName());
-            System.out.println(this.getParent().getParent().getParent().getParent().getClass().getName());
-            System.out.println(this.getParent().getParent().getParent().getParent().getParent().getClass().getName());
         }
-    }
-
-    private static void createAndShowGUI() {
-        JFrame frame = new JFrame("Итерация 2");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        JPanel panel = new JPanel(new FlowLayout());
-        CertificatePanel certPanel = new CertificatePanel();
-        panel.add(certPanel);
-        ButtonsPanel buttonsPanel = new ButtonsPanel();
-
-        panel.add(buttonsPanel);
-        frame.add(panel);
-        frame.pack();
-        frame.setVisible(true);
-
-    }
-
-    public static void main(String[] args) {
-        //Schedule a job for the event-dispatching thread:
-        //creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
     }
 }

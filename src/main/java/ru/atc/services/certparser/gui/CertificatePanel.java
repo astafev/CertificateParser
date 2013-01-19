@@ -5,12 +5,14 @@ import org.slf4j.LoggerFactory;
 import ru.atc.services.certparser.CertFactory;
 import ru.atc.services.certparser.config.Configuration;
 import ru.atc.services.certparser.config.Property;
+import ru.atc.services.certparser.service.SendCertActionListener;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -18,14 +20,15 @@ import java.util.*;
 
 public class CertificatePanel extends JPanel{
     //todo можно сделать нормальнее, добавив названия к компонентам как св-ва
-    Map<Property, JTextComponent> propFields = new HashMap<Property, JTextComponent>();
+    public Map<Property, JTextComponent> propFields = new HashMap<Property, JTextComponent>();
     JTextArea certificateArea;
     public static Logger log = LoggerFactory.getLogger("certificateparser.gui");
     DragAndDropHandler transferHandler;
 
     Configuration config = Configuration.getInstance();
     //костыль
-    static public File certFile = null;
+//    static public File certFile = null;
+    public CertFactory factory = new CertFactory();;
 
     CertificatePanel(){
         super(new GridBagLayout());
@@ -124,15 +127,23 @@ public class CertificatePanel extends JPanel{
         frame.setVisible(true);
     }
 
+    public void openCertificate(File certFile) throws IOException {
+        Map<Property, String> certificateMap = factory.parseCertificate(certFile);
+        for(Property prop:certificateMap.keySet())
+        {
+            propFields.get(prop).setText(certificateMap.get(prop));
+            propFields.get(prop).moveCaretPosition(0);
+        }
+    }
 
 
 
 
-    private class DragAndDropHandler extends TransferHandler{
-        public CertFactory factory;
+    class DragAndDropHandler extends TransferHandler{
+
 
         DragAndDropHandler(){
-            factory = new CertFactory();
+
         }
 
         @Override
@@ -151,20 +162,16 @@ public class CertificatePanel extends JPanel{
                 @SuppressWarnings("unchecked")
                 java.util.List<File> files = (java.util.List<File>) support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                 log.debug("dropped " + files.size() + " files");
-                CertificatePanel.certFile = files.get(0);
+//                CertificatePanel.certFile = files.get(0);
+
                 if(files.size()>1) {
                     log.error("You added more than one file");
                 }
-                CertificatePanel.this.putClientProperty("File", files.get(0));
-
-                Map<Property, String> certificateMap = factory.parseCertificate(files.get(0));
-                for(Property prop:certificateMap.keySet())
-                {
-                    propFields.get(prop).setText(certificateMap.get(prop));
-                    propFields.get(prop).moveCaretPosition(0);
-                }
+                MainWindow.certFile = files.get(0);
+//                CertificatePanel.this.putClientProperty("File", files.get(0));
+                CertificatePanel.this.openCertificate(files.get(0));
                 if(config.TO_SEND_AUTHOMATICALLY) {
-                    //todo
+                    SendCertActionListener.getInstance().actionPerformed(new ActionEvent(this,0,null));
                 }
             } catch (UnsupportedFlavorException e) {
                 e.printStackTrace();
