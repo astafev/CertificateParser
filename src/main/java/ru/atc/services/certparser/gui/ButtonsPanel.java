@@ -27,7 +27,7 @@ public class ButtonsPanel extends JPanel implements ActionListener{
     JButton verifyCertButton = new JButton("Послать сертификат"); {
         verifyCertButton.setToolTipText("Послать сертификат на сервис проверки сертификатов по тому адресу, который указан в конфиге");
     }
-    JButton testButton = new JButton("Test");
+    JButton testButton = new JButton("Open");
     JButton reloadConfigButton = new JButton("Reload config");
     JButton generateScript = new JButton("Generate scripts");
 
@@ -48,7 +48,7 @@ public class ButtonsPanel extends JPanel implements ActionListener{
 
 
         verifyCertButton.addActionListener(SendCertActionListener.getInstance());
-        testButton.addActionListener(this);
+        testButton.addActionListener(new OpenFileDialog());
         reloadConfigButton.addActionListener(Configuration.getInstance());
         this.add(testButton);
         this.add(reloadConfigButton);

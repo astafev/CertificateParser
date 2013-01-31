@@ -26,8 +26,6 @@ public class CertificatePanel extends JPanel{
     DragAndDropHandler transferHandler;
 
     Configuration config = Configuration.getInstance();
-    //костыль
-//    static public File certFile = null;
     public CertFactory factory = new CertFactory();;
 
     CertificatePanel(){
@@ -39,8 +37,6 @@ public class CertificatePanel extends JPanel{
         transferHandler = new DragAndDropHandler();
         setTransferHandler(transferHandler);
     }
-
-
 
     public void addPropFields()  {
         GridBagConstraints c = new GridBagConstraints();
@@ -111,21 +107,6 @@ public class CertificatePanel extends JPanel{
         }
     }
 
-    /**
-     * Create the GUI and show it.  For thread safety,
-     * this method should be invoked from the
-     * event-dispatching thread.
-     */
-    private static void createAndShowGUI() {
-        JFrame frame = new JFrame("Итерация 1");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        Configuration config = new Configuration();
-        CertificatePanel panel = new CertificatePanel();
-        frame.add(panel);
-        frame.pack();
-        frame.setVisible(true);
-    }
 
     public void openCertificate(File certFile) throws IOException {
         Map<Property, String> certificateMap = factory.parseCertificate(certFile);
@@ -136,15 +117,10 @@ public class CertificatePanel extends JPanel{
         }
     }
 
-
-
-
     class DragAndDropHandler extends TransferHandler{
 
 
-        DragAndDropHandler(){
-
-        }
+        DragAndDropHandler(){}
 
         @Override
         public boolean canImport(TransferSupport support) {
@@ -176,20 +152,9 @@ public class CertificatePanel extends JPanel{
             } catch (UnsupportedFlavorException e) {
                 e.printStackTrace();
             } catch (IOException e) {
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, e.getLocalizedMessage(), "Ошибка при чтении сертификата", JOptionPane.ERROR_MESSAGE);
             }
             return true;
         }
     }
-
-    public static void main(String[] args) {
-        //Schedule a job for the event-dispatching thread:
-        //creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
-    }
-
 }

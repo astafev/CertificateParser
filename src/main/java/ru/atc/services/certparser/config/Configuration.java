@@ -32,7 +32,7 @@ public class Configuration implements ActionListener{
     public String URL = "http://oraas.rt.ru:7777/gateway/services/SID0003318";
 
     /***/
-    public Set<Property> propSet = new TreeSet<>();
+    public Set<Property> propSet = new TreeSet<Property>();
 
     public boolean TO_USE_PROXY = false;
     public String proxyHost = "localhost";
@@ -72,10 +72,10 @@ public class Configuration implements ActionListener{
                 log.error("кривой конфиг или еще какая фигня", e);
             } catch (MalformedURLException e) {
                 log.error("Не нашел конфигурационный файл!", e);
-                JOptionPane.showMessageDialog(null, e.getMessage() + "\nПодробнее в логах", "Не нашел конфигурационный файл!" + configFile, JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null,"Не нашел конфигурационный файл!\n" + configFile + '\n' +  e.toString() + "\nПодробнее в логах", "Не нашел конфигурационный файл!" , JOptionPane.ERROR_MESSAGE);
             } catch (IOException e) {
                 log.error("пиздец", e);
-                JOptionPane.showMessageDialog(null, e.getMessage()+ "\nПодробнее в логах", "Ошибка при чтении конфигурационного файла!", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, e.toString()+ "\nПодробнее в логах", "Ошибка при чтении конфигурационного файла!", JOptionPane.ERROR_MESSAGE);
             }
             log.debug("Config created");
         }
@@ -87,7 +87,7 @@ public class Configuration implements ActionListener{
     public void init(String configFile) throws SAXException, IOException {
         //считывает конфигурация из xml-файла
         //to_test
-        this.propSet = new LinkedHashSet<>();
+        this.propSet = new LinkedHashSet<Property>();
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(configFile);
 
         try{

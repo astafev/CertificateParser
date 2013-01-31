@@ -26,6 +26,7 @@ import java.util.List;
 
 /**
  * Посылает сертификат в Base64 на сервис проверки сертификатов
+ * //todo заменить использование apache http client на базовую библиотеку java
  */
 public class ServiceVerify {
     public static final File base64encodedCertificate = new File("base64encodedCert.cer");

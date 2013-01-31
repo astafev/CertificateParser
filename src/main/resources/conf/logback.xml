@@ -14,8 +14,6 @@
 
     <root level="debug">
         <appender-ref ref="LOG_FILE" />
-    </root>
-    <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
 

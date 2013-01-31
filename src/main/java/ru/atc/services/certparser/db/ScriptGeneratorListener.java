@@ -31,7 +31,7 @@ public class ScriptGeneratorListener implements ActionListener{
     Map<Property,Pattern> patterns;
 //    static Matcher m = patterns.matcher("");
     public File fileWithScripts;
-    public BufferedWriter writer;
+    public Writer writer;
     public static ScriptGeneratorListener scriptGenerator;
 
     String templateScript;
@@ -59,7 +59,8 @@ public class ScriptGeneratorListener implements ActionListener{
                     }
                 }
             }
-            scriptGenerator.writer = new BufferedWriter(new FileWriter(scriptGenerator.fileWithScripts));
+            //сраный BufferedWriter не делает flush
+            scriptGenerator.writer = new BufferedWriter(new FileWriter(scriptGenerator.fileWithScripts, true));
         }
         return scriptGenerator;
     }
@@ -88,8 +89,10 @@ public class ScriptGeneratorListener implements ActionListener{
             String script;
             script = generateScriptFromFile(values, Configuration.getInstance().template_script);
             writer.write(script);
-            writer.flush();
-            log.info("Wrote something to script");
+            writer.flush(); //Бля!! Какого хера flush не работает!
+//            to_think почему-то предыдущий кусок кода не делает flush нормально.
+//            ((PrintWriter)writer).println(script);
+            log.info("Wrote something to " + fileWithScripts.getAbsolutePath());
             log.debug(script);
         } catch (IOException e1) {
             log.error("Бедаааа!", e1);

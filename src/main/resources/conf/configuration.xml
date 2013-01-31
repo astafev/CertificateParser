@@ -31,7 +31,7 @@
 
     </properties>
     <service>
-        <send_automatically>true</send_automatically>
+        <send_automatically>false</send_automatically>
         <!--альтернатива, доступная без поделючения к продуктивной сети: http://192.168.100.96:7777/gateway/services/SID0003064-->
         <url>http://oraas.rt.ru:7777/gateway/services/SID0003318</url>
         <proxy>

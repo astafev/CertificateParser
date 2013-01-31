@@ -6,6 +6,10 @@
     <groupId>CertificateParser</groupId>
     <artifactId>CertificateParser</artifactId>
     <version>1.0</version>
+    <properties>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -42,7 +46,14 @@
                             <classpathPrefix>dependency/</classpathPrefix>
                             <mainClass>ru.atc.services.certparser.gui.MainWindow</mainClass>
                         </manifest>
+                        <manifestEntries>
+                            <Class-Path>conf/</Class-Path>
+                        </manifestEntries>
                     </archive>
+                    <excludes>
+                        <exclude>**/conf/*</exclude>
+                    </excludes>
+                    <!--<outputDirectory>target/classes</outputDirectory>-->
                 </configuration>
             </plugin>
             <plugin>

@@ -43,8 +43,15 @@ public class CertFactory {
      * Есть 3 св-ва обязательных: файл с сертификатом, серийный номер, то что выдала утилитка certutil (при нормальной работе сам сертификат)
      * */
     public synchronized Map<Property, String> parseCertificate(File certificateFile) throws IOException {
+        if(!certificateFile.exists()) {
+            log.error("File " + certificateFile.getAbsolutePath() + "doesn't exist!");
+            throw new FileNotFoundException("File " + certificateFile.getAbsolutePath() + "doesn't exist!");
+        }
+
         final Map<Property, String> certMap = new LinkedHashMap<Property, String>(configuration.propSet.size()+2);
+
         this.certificate = getCertificate(certificateFile);
+
         if(certificate.contains("команда НЕ ВЫПОЛНЕНА")){
             throw new IOException(certificate);       //to_think
         }
