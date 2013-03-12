@@ -11,11 +11,9 @@ import javax.swing.text.JTextComponent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,54 +42,52 @@ public class ScriptGeneratorListener implements ActionListener{
     public static ScriptGeneratorListener getInstance() throws IOException{
         if(scriptGenerator == null) {
             scriptGenerator = new ScriptGeneratorListener();
-            scriptGenerator.fileWithScripts = new File(Configuration.getInstance().target_script_file);
-            if(!scriptGenerator.fileWithScripts.exists()) {
-                try {
-                    scriptGenerator.fileWithScripts.createNewFile();
-                } catch (IOException e1) {
-                    log.error("Unable to create file for scripts " + scriptGenerator.fileWithScripts.toString(), e1);
-                    scriptGenerator.fileWithScripts = new File("generated_scripts.sql");
-                    try {
-                        scriptGenerator.fileWithScripts.createNewFile();
-                    } catch (IOException e2) {
-                        log.error("Unable to create file for scripts " + scriptGenerator.fileWithScripts.toString() + " It's going to be impossible to create scripts", e2);
-
-                    }
-                }
-            }
-            //сраный BufferedWriter не делает flush
-            scriptGenerator.writer = new BufferedWriter(new FileWriter(scriptGenerator.fileWithScripts, true));
+            ScriptGeneratorListener.init(scriptGenerator);
         }
         return scriptGenerator;
     }
 
+    private static void init(ScriptGeneratorListener scriptGenerator) throws IOException {
+        scriptGenerator.fileWithScripts = new File(Configuration.getInstance().target_script_file);
+        if(!scriptGenerator.fileWithScripts.exists()) {
+            try {
+                scriptGenerator.fileWithScripts.createNewFile();
+            } catch (IOException e1) {
+                log.error("Unable to create file for scripts " + scriptGenerator.fileWithScripts.toString(), e1);
+                scriptGenerator.fileWithScripts = new File("generated_scripts.sql");
+                try {
+                    scriptGenerator.fileWithScripts.createNewFile();
+                } catch (IOException e2) {
+                    log.error("Unable to create file for scripts " + scriptGenerator.fileWithScripts.toString() + " It's going to be impossible to create scripts", e2);
 
-
-
-    public void renewConfig() throws IOException {
-        scriptGenerator = null;      //хули мучаться
-
-        //создаем новый файл
-
-//        templateScript = null;
-//        patterns = null;
-//        fileWithScripts = null;
-//        writer = null;
+                }
+            }
+        }
+        scriptGenerator.writer = new BufferedWriter(new FileWriter(scriptGenerator.fileWithScripts, true));
     }
 
+
+
+    /**
+     * При нажатии кнопки "Reload config" шаблонный скрипт должен переподгружаться. Этот метод затирает переменную templateScript.
+     * */
+    public void renewConfig() throws IOException {
+        templateScript = null;
+    }
+
+    /**
+     * Генерит скрипт
+     * */
     @Override
     public synchronized void actionPerformed(ActionEvent e) {
         try {
-
-
             //МУ-ХА-ХА
             Map<Property,JTextComponent> values = MainWindow.getInstance().certificatePanel.propFields;
             String script;
             script = generateScriptFromFile(values, Configuration.getInstance().template_script);
             writer.write(script);
-            writer.flush(); //Бля!! Какого хера flush не работает!
-//            to_think почему-то предыдущий кусок кода не делает flush нормально.
-//            ((PrintWriter)writer).println(script);
+            writer.flush();
+            writer.close();
             log.info("Wrote something to " + fileWithScripts.getAbsolutePath());
             log.debug(script);
         } catch (IOException e1) {
@@ -101,7 +97,7 @@ public class ScriptGeneratorListener implements ActionListener{
     }
 
     public String generateScriptFromFile(Map<Property,JTextComponent> values, String templateScriptFile) throws IOException {
-        Map<Property, String> map = new LinkedHashMap<Property, String>(values.size());
+        Map<Property, String> map = new LinkedHashMap<>(values.size());
         for(Property property : values.keySet()) {
             map.put(property, values.get(property).getText());
         }
@@ -132,7 +128,7 @@ public class ScriptGeneratorListener implements ActionListener{
     public String generateScript(Map<Property, String> values, String templateScript) {
         String script = templateScript;
         if(patterns == null) {
-            patterns = new HashMap<Property, Pattern>();
+            patterns = new HashMap<>();
             for(Property prop: values.keySet()) {
                 if(prop.getPatternInScript()==null) {
                     continue;
@@ -141,7 +137,6 @@ public class ScriptGeneratorListener implements ActionListener{
             }
         }
 
-//        StringBuffer b = new StringBuffer(templateScript.length());
         for(Property prop: values.keySet()) {
             if(prop.getPatternInScript()==null) {
                 continue;

@@ -66,17 +66,18 @@ public class CertificatePanel extends JPanel{
             }*/
             if(!prop.getName().equals("Сертификат")){
                 JLabel label = new JLabel(prop.getName());
+                c.ipadx=0;
                 c.gridy = yi;
                 c.gridx = 0;
                 c.ipadx=10;
-                c.gridwidth = 1;
+//                c.gridwidth = GridBagConstraints.REMAINDER;
                 this.add(label, c);
 
-                JTextField textField = new JTextField(2);
+                JTextField textField = new JTextField();
                 c.gridy = yi;
                 c.ipadx=200;
                 c.gridx = 1;
-                c.gridwidth = 2;
+                c.gridwidth = GridBagConstraints.RELATIVE;
                 this.add(textField, c);
                 yi++;
                 propFields.put(prop, textField);

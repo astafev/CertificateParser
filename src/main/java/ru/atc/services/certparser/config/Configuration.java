@@ -109,8 +109,9 @@ public class Configuration implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         try {
-            this.init();
             ScriptGeneratorListener.getInstance().renewConfig();
+            this.init();
+
         } catch (SAXException e1) {
             JOptionPane.showMessageDialog(null, e1.getLocalizedMessage(), "Неверный конфиг!", JOptionPane.ERROR_MESSAGE);
         } catch (IOException e1) {

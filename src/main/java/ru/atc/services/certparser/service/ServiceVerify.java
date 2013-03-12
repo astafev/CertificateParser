@@ -1,14 +1,5 @@
 package ru.atc.services.certparser.service;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -20,6 +11,9 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import ru.atc.services.certparser.config.Configuration;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.List;
@@ -32,9 +26,7 @@ public class ServiceVerify {
     public static final File base64encodedCertificate = new File("base64encodedCert.cer");
 
     public static Logger log = LoggerFactory.getLogger("certificateparser.service");
-    public final String URL;
-    public HttpClient httpClient = new DefaultHttpClient();
-
+    public final URL url;
     /**ответ от сервиса проверки сертификатов<br/>
      * "0" - все ОК*/
     private String response;
@@ -51,13 +43,16 @@ public class ServiceVerify {
 
     XMLReader xr = null;
 
-    public ServiceVerify() {
-        this.URL = Configuration.getInstance().URL;
+    public ServiceVerify() throws MalformedURLException {
+        this.url = new URL(Configuration.getInstance().URL);
         if(Configuration.getInstance().TO_USE_PROXY) {
-            this.httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(Configuration.getInstance().proxyHost, Configuration.getInstance().proxyPort)); //прокси
-
+//            this.httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(Configuration.getInstance().proxyHost, Configuration.getInstance().proxyPort)); //прокси
+            System.setProperty("http.proxyHost", Configuration.getInstance().proxyHost);
+            System.setProperty("http.proxyPort", Integer.toString(Configuration.getInstance().proxyPort));
+        } else{
+            System.clearProperty("http.proxyHost");
+            System.clearProperty("http.proxyPort");
         }
-//        System.out.println(httpClient.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY));
         try {
             xr = XMLReaderFactory.createXMLReader();
         } catch (SAXException e) {
@@ -75,13 +70,25 @@ public class ServiceVerify {
      * Посылает сертификат на сервис проверки
      *
      * */
-    public HttpResponse sendCertificate(File certFile) throws IOException {
-        HttpPost request = new HttpPost(URL);
-        request.addHeader("SOAPAction", "http://esv.server.rt.ru/VerifyCertificate");
-        HttpEntity entity = new StringEntity(firstPart + getBase64Encoding(certFile)+ lastPart, ContentType.create("text/xml", "UTF-8"));
-        request.setEntity(entity);
-        log.debug("Sending...");
-        return httpClient.execute(request);
+    public InputStream sendCertificate(File certFile) throws IOException {
+        HttpURLConnection connection =  (HttpURLConnection)url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "text/xml;charset=UTF-8");
+        connection.setRequestProperty("SOAPAction", "http://esv.server.rt.ru/VerifyCertificate");
+
+        connection.setUseCaches (false);
+        connection.setDoInput(true);
+        connection.setDoOutput(true);
+
+        //send
+        BufferedOutputStream out = new BufferedOutputStream(connection.getOutputStream());
+        out.write(firstPart.getBytes());
+        out.write(getBase64Encoding(certFile).getBytes());
+        out.write(lastPart.getBytes());
+        out.close();
+        log.debug("Send request");
+        //get response
+        return connection.getInputStream();
     }
 
     /**
@@ -89,10 +96,7 @@ public class ServiceVerify {
      * @return "0\n" если все ОК<br /> код и описание ошибки в ином случае
      * */
     public String validateCertificate(File certFie) throws IOException, SAXException {
-        HttpResponse response = sendCertificate(certFie);
-        log.debug("Got response.");
-        InputStream is = response.getEntity().getContent();
-        xr.parse(new InputSource(is));
+        xr.parse(new InputSource(sendCertificate(certFie)));
         return this.response;
     }
 
